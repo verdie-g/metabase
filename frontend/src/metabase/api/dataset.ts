@@ -51,14 +51,13 @@ export const datasetApi = Api.injectEndpoints({
             method: "POST",
             url,
             body: formData,
-            transformResponse: ({ response }: { response: Response }) =>
-              response,
+            rawResponse: true,
           };
         }
         return {
           method: "GET",
           url,
-          transformResponse: ({ response }: { response: Response }) => response,
+          rawResponse: true,
         };
       },
     }),
