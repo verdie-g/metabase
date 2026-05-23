@@ -12,9 +12,12 @@ export const advancedConfigApi = EnterpriseApi.injectEndpoints({
         return {
           method: "POST",
           url: "/api/ee/advanced-config",
-          body: { formData },
-          formData: true,
-          fetch: true,
+          // Pass FormData directly. The legacy `body: { formData }` +
+          // `formData: true` shape predated the unified API client; the new
+          // client detects `body instanceof FormData` and lets the browser set
+          // the multipart Content-Type. Wrapping it in an object now would
+          // JSON.stringify the wrapper and send "[object FormData]" as the body.
+          body: formData,
         };
       },
       invalidatesTags: (_, error) =>
