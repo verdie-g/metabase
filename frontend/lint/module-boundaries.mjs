@@ -178,6 +178,14 @@ const elements = [
       enforceOutgoing: true,
     }),
   ),
+  // App-level connected nav orchestration (wires feature data into the
+  // shared nav components).
+  createElement({
+    type: "app",
+    name: "nav",
+    pattern: "frontend/src/metabase/app/nav/**",
+    enforceOutgoing: true,
+  }),
   // catch-all for unmoduled files - must be last
   createElement({
     type: "shared",
