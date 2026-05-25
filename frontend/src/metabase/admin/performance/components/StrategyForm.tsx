@@ -41,11 +41,14 @@ import type {
 } from "metabase-types/api";
 import { CacheDurationUnit } from "metabase-types/api";
 
-import { strategyValidationSchema } from "../constants/complex";
 import { defaultCronSchedule, rootId } from "../constants/simple";
 import { useIsFormPending } from "../hooks/useIsFormPending";
 import { isModelWithClearableCache } from "../types";
-import { getDefaultValueForField, getLabelString } from "../utils";
+import {
+  getDefaultValueForField,
+  getLabelString,
+  strategyValidationSchema,
+} from "../utils";
 
 import Styles from "./PerformanceApp.module.css";
 import {
