@@ -248,45 +248,54 @@
   ;; Filter out SQL functions
   (when-not (or (str/starts-with? (name kw) "%")
                 (#{:else :integer :float} kw))
-    (let [table (get-table kw)]
-      [[(or table :this) (remove-table table kw)]])))
+    (if-let [table (get-table kw)]
+      [table (remove-table table kw)]
+      [:this kw])))
 
-(defn- find-fields-expr [expr]
-  (cond
-    (keyword? expr)
-    (find-fields-kw expr)
+(defn- find-fields-expr
+  ([expr] (persistent! (find-fields-expr (transient []) expr)))
+  ([acc expr]
+   (cond
+     (keyword? expr)
+     (conj! acc (find-fields-kw expr))
 
-    (and (vector? expr) (> (count expr) 1))
-    (into [] (mapcat find-fields-expr) (subvec expr 1))
+     (and (vector? expr) (> (count expr) 1))
+     (reduce find-fields-expr2 acc (subvec expr 1))
 
-    (and (map? expr) (:fields expr))
-    (into [] (mapcat find-fields-expr) (:fields expr))))
+     (and (map? expr) (:fields expr))
+     (reduce-kv #(find-fields-expr2 %1 %3) acc (:fields expr))
 
-(defn- find-fields-attr [[k v]]
-  (when v
+     :else acc)))
+
+(defn- find-fields-attr [acc k v]
+  (if v
     (if (true? v)
-      [[:this (keyword (u/->snake_case_en (name k)))]]
-      (find-fields-expr v))))
+      (conj! acc [:this (keyword (u/->snake_case_en (name k)))])
+      (find-fields-expr acc v))
+    acc))
 
-(defn- find-fields-search [item]
+(defn- find-fields-search [acc item]
   (let [x (if (map-entry? item) (key item) item)]
     (cond
       (keyword? x)
-      (find-fields-kw x)
+      (conj! acc (find-fields-kw x))
 
       (vector? x)
-      (find-fields-expr (first x)))))
+      (find-fields-expr acc (first x))
+
+      :else acc)))
 
 (defn- find-fields
   "Search within a definition for all the fields referenced on the given table alias."
   [spec]
   (u/group-by #(nth % 0) #(nth % 1) conj #{}
-              (-> []
-                  ;; select fields that will influence content
-                  (into (mapcat find-fields-attr (:attrs spec)))
-                  (into (mapcat find-fields-search (:search-terms spec)))
-                  (into (mapcat find-fields-attr (:render-terms spec)))
-                  (into (find-fields-expr (:where spec))))))
+              (as-> (transient []) acc
+                ;; select fields that will influence content
+                (reduce-kv find-fields-attr acc (:attrs spec))
+                (reduce find-fields-search acc (:search-terms spec))
+                (reduce-kv find-fields-attr acc (:render-terms spec))
+                (reduce find-fields-expr acc (:where spec))
+                (persistent! acc))))
 
 (defn- replace-qualification [expr from to]
   (cond
