@@ -1,7 +1,8 @@
 import { useCallback, useMemo } from "react";
 import { push } from "react-router-redux";
 
-import { OverviewVisualization } from "metabase/data-studio/common/components/OverviewVisualization";
+import { MetricCardVisualization } from "metabase/data-studio/common/components/OverviewVisualization";
+import { useCardQueryData } from "metabase/data-studio/common/hooks/use-card-query-data";
 import { useMetricDefinition } from "metabase/metrics/common/hooks";
 import { useDispatch } from "metabase/redux";
 import { Box, Flex, Stack } from "metabase/ui";
@@ -23,6 +24,7 @@ interface MetricAboutProps {
 export function MetricAbout({ card, urls }: MetricAboutProps) {
   const { definition } = useMetricDefinition(card.id ?? null);
   const dispatch = useDispatch();
+  const { data, isLoading } = useCardQueryData(card);
 
   const hasTimeDimension = useMemo(
     () =>
@@ -41,7 +43,7 @@ export function MetricAbout({ card, urls }: MetricAboutProps) {
   }, [dispatch, card.id]);
 
   return (
-    <Flex className={S.root} flex={1}>
+    <Flex className={S.root} flex={1} gap="md">
       <Box
         className={S.chartContainer}
         flex={1}
@@ -51,7 +53,12 @@ export function MetricAbout({ card, urls }: MetricAboutProps) {
         {hasTimeDimension ? (
           <AboutVisualization card={card} />
         ) : (
-          <OverviewVisualization card={card} />
+          <MetricCardVisualization
+            card={card}
+            data={data}
+            isLoading={isLoading}
+            className={S.visualizationPanel}
+          />
         )}
       </Box>
       <Stack flex="0 0 360px" className={S.descriptionSection} mah={700}>
