@@ -24,7 +24,6 @@ interface MetricAboutProps {
 export function MetricAbout({ card, urls }: MetricAboutProps) {
   const { definition } = useMetricDefinition(card.id ?? null);
   const dispatch = useDispatch();
-  const { data, isLoading } = useCardQueryData(card);
 
   const hasTimeDimension = useMemo(
     () =>
@@ -53,17 +52,24 @@ export function MetricAbout({ card, urls }: MetricAboutProps) {
         {hasTimeDimension ? (
           <AboutVisualization card={card} />
         ) : (
-          <MetricCardVisualization
-            card={card}
-            data={data}
-            isLoading={isLoading}
-            className={S.visualizationPanel}
-          />
+          <NoTimeDimensionChart card={card} />
         )}
       </Box>
       <Stack flex="0 0 360px" className={S.descriptionSection} mah={700}>
         <DescriptionSection card={card} urls={urls} />
       </Stack>
     </Flex>
+  );
+}
+
+function NoTimeDimensionChart({ card }: { card: Card }) {
+  const { data, isLoading } = useCardQueryData(card);
+  return (
+    <MetricCardVisualization
+      card={card}
+      data={data}
+      isLoading={isLoading}
+      className={S.visualizationPanel}
+    />
   );
 }
