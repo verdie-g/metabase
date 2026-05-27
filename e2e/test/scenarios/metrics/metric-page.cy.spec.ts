@@ -62,8 +62,8 @@ describe("scenarios > metrics > metric page", () => {
     H.MetricPage.aboutPage().should("be.visible");
     H.MetricPage.aboutPageDescriptionSidebar().within(() => {
       cy.findByText("Total number of orders").should("be.visible");
+      cy.findByText("Source").should("be.visible");
       cy.findByText("Sample Database").should("be.visible");
-      cy.findByText("Source table").should("be.visible");
       cy.findByText("Orders").should("be.visible");
     });
 
@@ -398,8 +398,9 @@ describe("scenarios > metrics > metric page", () => {
       });
 
       H.MetricPage.aboutPageDescriptionSidebar().within(() => {
-        cy.findByText("Dependencies").should("be.visible");
-        cy.findByText("Dependents").should("be.visible");
+        cy.findByText("Relationships").should("be.visible");
+        cy.findByText("No dependencies").should("be.visible");
+        cy.findByText("No charts use this metric").should("be.visible");
       });
 
       H.MetricPage.dependenciesTab().click();
