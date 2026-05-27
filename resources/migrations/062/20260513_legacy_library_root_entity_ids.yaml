@@ -4,15 +4,42 @@ databaseChangeLog:
   - logicalFilePath: migrations/062_update_migrations.yaml
 
   - changeSet:
+      id: v62.2026-05-13T11:59:59
+      author: andsalves
+      comment: Backfill type column value for Library collections
+      changes:
+        - sql:
+            sql: >-
+              UPDATE collection
+              SET type = 'library'
+              WHERE entity_id = 'librarylibrarylibrary' AND (type IS NULL OR type <> 'library');
+
+              UPDATE collection
+              SET type = 'library-data'
+              WHERE entity_id = 'librarylibrarydatadat' AND (type IS NULL OR type <> 'library-data');
+
+              UPDATE collection
+              SET type = 'library-metrics'
+              WHERE entity_id = 'librarylibrarymetrics' AND (type IS NULL OR type <> 'library-metrics');
+      rollback:
+        - empty: {}
+
+  - changeSet:
       id: v62.2026-05-13T12:00:00
       author: andsalves
       comment: Backfill canonical entity_id for legacy Library root collection
+      validCheckSum: ANY
       changes:
         - sql:
             sql: >-
               UPDATE collection
               SET entity_id = 'librarylibrarylibrary'
               WHERE type = 'library' AND location = '/'
+                AND NOT EXISTS (
+                  SELECT 1 FROM (
+                    SELECT entity_id FROM collection WHERE entity_id = 'librarylibrarylibrary'
+                  ) existing
+                )
       rollback:
         - empty: {}
 
@@ -20,6 +47,7 @@ databaseChangeLog:
       id: v62.2026-05-13T12:00:01
       author: andsalves
       comment: Backfill canonical entity_id for legacy Library Data section
+      validCheckSum: ANY
       changes:
         - sql:
             dbms: postgresql,h2
@@ -46,6 +74,11 @@ databaseChangeLog:
                       )
                   ) x
                 )
+                AND NOT EXISTS (
+                  SELECT 1 FROM (
+                    SELECT entity_id FROM collection WHERE entity_id = 'librarylibrarydatadat'
+                  ) existing
+                )
         - sql:
             dbms: mysql,mariadb
             sql: >-
@@ -70,6 +103,11 @@ databaseChangeLog:
                         WHERE lib.type = 'library' AND lib.location = '/'
                       )
                   ) x
+                )
+                AND NOT EXISTS (
+                  SELECT 1 FROM (
+                    SELECT entity_id FROM collection WHERE entity_id = 'librarylibrarydatadat'
+                  ) existing
                 )
       rollback:
         - empty: {}
@@ -78,6 +116,7 @@ databaseChangeLog:
       id: v62.2026-05-13T12:00:02
       author: andsalves
       comment: Backfill canonical entity_id for legacy Library Metrics section
+      validCheckSum: ANY
       changes:
         - sql:
             dbms: postgresql,h2
@@ -104,6 +143,11 @@ databaseChangeLog:
                       )
                   ) x
                 )
+                AND NOT EXISTS (
+                  SELECT 1 FROM (
+                    SELECT entity_id FROM collection WHERE entity_id = 'librarylibrarymetrics'
+                  ) existing
+                )
         - sql:
             dbms: mysql,mariadb
             sql: >-
@@ -128,6 +172,11 @@ databaseChangeLog:
                         WHERE lib.type = 'library' AND lib.location = '/'
                       )
                   ) x
+                )
+                AND NOT EXISTS (
+                  SELECT 1 FROM (
+                    SELECT entity_id FROM collection WHERE entity_id = 'librarylibrarymetrics'
+                  ) existing
                 )
       rollback:
         - empty: {}
