@@ -82,12 +82,6 @@ type MethodCreator = (
       }) => Response | undefined),
 ) => ApiMethod;
 
-type ResponseErrorInfo = {
-  body: unknown;
-  status: number;
-  metabaseVersion: string | null;
-};
-
 /**
  * Thrown when the transport itself fails before a response is received —
  * e.g. the server dropped the connection, DNS lookup failed, or the user is
@@ -105,7 +99,6 @@ export class LegacyApi extends EventEmitter {
   basename = "";
   apiKey = "";
   sessionToken: string | undefined;
-  onResponseError: ((info: ResponseErrorInfo) => void) | undefined;
   requestClient: RequestClientInfo | undefined;
 
   beforeRequestHandlers: OnBeforeRequestHandler[] = [];
@@ -395,13 +388,11 @@ export class LegacyApi extends EventEmitter {
             }
             resolve(responseBody);
           } else {
-            if (this.onResponseError) {
-              this.onResponseError({
-                body: responseBody,
-                status,
-                metabaseVersion,
-              });
-            }
+            this.emit("responseError", {
+              body: responseBody,
+              status,
+              metabaseVersion,
+            });
 
             reject({
               status: status,
@@ -504,9 +495,7 @@ export class LegacyApi extends EventEmitter {
             }
             return body;
           } else {
-            if (this.onResponseError) {
-              this.onResponseError({ body, status, metabaseVersion });
-            }
+            this.emit("responseError", { body, status, metabaseVersion });
 
             throw { status: status, data: body };
           }
